@@ -4,6 +4,16 @@
 
 [Private source repository](https://github.com/Westyoon/Adaptive-Modality-Selection) · [FedCola paper](https://arxiv.org/abs/2404.12467)
 
+## Project info
+
+| Item | Detail |
+|---|---|
+| Period | 2026.03 - 2026.05 |
+| Team | 3 contributors in the fork; my contribution is limited to the paths listed below |
+| My role | FedAvg/FedProx unimodal experiments, pow-d·mmFedMC runs, FLOPs·communication analysis |
+| Stack | Python, PyTorch, Jupyter, shell scripts, W&B |
+| Access | Private research fork; public visitors can review this case study only |
+
 ## Executive summary
 
 | Item | Detail |
@@ -59,6 +69,29 @@ flowchart LR
 - server/client checkpoint를 함께 저장해 장시간 실행 중단 후에도 같은 상태에서 재개했습니다.
 - accuracy만 보지 않고 macro-F1과 모달리티별 head 결과를 함께 확인했습니다.
 - 통신량은 선택된 다운로드·업로드 단위를 round별로 집계했습니다.
+
+## Troubleshooting
+
+### 1. 데이터셋마다 label 구조가 달라 같은 loss를 사용할 수 없었습니다
+
+- **Problem:** single-label 데이터와 MM-IMDb 같은 multi-label 데이터의 수치를 같은 설정으로 비교하면 결과가 왜곡됐습니다.
+- **Root cause:** 데이터셋별 target 형태와 평가 metric이 다른데 공통 criterion을 가정했습니다.
+- **Options considered:** 하나의 loss로 통일하거나 데이터셋별 criterion을 분리하는 방식을 비교했습니다.
+- **Fix:** multi-label에는 `BCEWithLogitsLoss`, single-label에는 분류 loss를 사용하고 accuracy와 macro-F1을 함께 기록했습니다.
+- **Result:** loss 차이를 모델 성능 차이로 잘못 해석할 위험을 줄였습니다.
+
+### 2. 실행마다 metric step이 달라 실험 곡선을 직접 비교하기 어려웠습니다
+
+- **Problem:** 중단·재개된 run과 baseline의 W&B x축이 맞지 않았습니다.
+- **Root cause:** logging step이 local iteration과 communication round 사이에서 일관되지 않았습니다.
+- **Fix:** 주요 metric을 round에 연결하고 분석 notebook에서도 같은 round key로 정렬했습니다.
+- **Result:** 알고리즘과 선택 범위별 곡선을 같은 기준에서 비교할 수 있게 됐습니다.
+
+### 3. 장시간 실험이 중단되면 같은 상태를 재현하기 어려웠습니다
+
+- **Problem:** server 상태만 복원하거나 client optimizer 상태가 빠지면 이어진 run이 원래 run과 달라졌습니다.
+- **Fix:** server/client checkpoint와 실험 설정을 함께 저장하고 재개 script에서 같은 조건을 명시했습니다.
+- **Result:** 긴 GPU 실험을 처음부터 다시 실행하지 않고 중단 지점에서 검증할 수 있게 됐습니다.
 
 ## Evidence available in the private repository
 

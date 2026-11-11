@@ -4,7 +4,7 @@
 
 ## 0:00–0:30 — 전체 방향
 
-[루트 README](README.md)의 `At a glance`와 `Selected work`를 먼저 확인합니다.
+[루트 README](README.md)의 `Featured case studies`에서 프로젝트별 기간, 역할과 문제 해결 요약을 먼저 확인합니다.
 
 핵심 주제는 세 가지입니다.
 
@@ -36,20 +36,19 @@
 
 이 프로젝트는 비공개 연구 저장소이므로 공개 가능한 구조와 검증 원칙만 제공합니다.
 
-## 3:30–4:15 — SQL과 데이터 제공
+## 3:30–4:15 — 현장 피드백과 QA
 
-[DByte SQL Data Service](projects/dbyte-sql-data-service/README.md)에서 사용자 요구를 조회 조건으로 바꾼 사례를 확인합니다.
+[JARVIS Gaze Tracking](projects/gaze-tracking-qa/README.md)에서 사용자 피드백을 calibration 변수와 진단 화면으로 바꾼 과정을 확인합니다.
 
-- 환자와 의사에게 서로 다른 범위의 데이터를 제공하는 방식
-- JOIN, VIEW, 집계와 window function을 사용한 방식
-- 학업용 프로토타입의 한계를 명시한 방식
+- 짧은 관측 손실을 제한적으로 흡수한 방식
+- 기기 크기에 따라 판정 영역을 분리한 방식
+- 불확실할 때 `UNKNOWN`을 유지한 방식
 
 ## 4:15–5:00 — 품질 기준과 보조 사례
 
 - [데이터 QA 체크리스트](playbook/data-quality-checklist.md): 분석 전후에 반복해서 사용하는 검토 기준
 - [QA 코드 예시](projects/emergency-medical-capacity/src/qa_validation_example.py): 작은 DataFrame에 적용한 실행 가능한 예시
-- [Face Anonymizer](projects/face-anonymizer-validation/README.md): threshold의 오류 비용 비교
-- [Gaze Tracking](projects/gaze-tracking-qa/README.md): 사용자 피드백을 calibration 변수로 바꾼 사례
+- [DByte SQL Data Service](projects/dbyte-sql-data-service/README.md): 개인 기여와 팀 구현을 분리하고 미해결 한계를 명시한 SQL/JDBC 사례
 
 ## Evidence standard
 

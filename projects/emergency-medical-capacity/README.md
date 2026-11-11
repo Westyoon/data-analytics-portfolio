@@ -4,6 +4,16 @@
 
 [Source repository](https://github.com/Westyoon/embulance_score) · [Data pipeline](https://github.com/Westyoon/embulance_score/blob/main/DATA_PIPELINE.md) · [Analysis report](https://github.com/Westyoon/embulance_score/blob/main/ANALYSIS_REPORT.md) · [QA example](src/qa_validation_example.py)
 
+## Project info
+
+| Item | Detail |
+|---|---|
+| Period | 2026.07 - 2026.09 |
+| Team | 3 contributors |
+| My role | 데이터 수집·검증 파이프라인, 분석, 백엔드 API, 배포 자동화 |
+| Stack | Python, pandas, scikit-learn, Next.js, Node.js, Docker, GitHub Actions |
+| Demo | 현재 공개 배포는 중단되어 있으며, 아래 로컬 실행 절차로 재현 가능 |
+
 ## Executive summary
 
 | Item | Detail |
@@ -53,6 +63,32 @@ flowchart LR
 | 낮은 신뢰도 후보를 별도 파일로 격리 | 자동화가 불확실성을 숨기지 않게 함 | 강제 매칭으로 잘못된 값 유입 |
 | 미매칭·미수집·0을 서로 다른 상태로 관리 | 결측의 원인에 맞는 후속조치 가능 | 실패를 실제 0으로 오해 |
 | 검증을 통과한 staging만 원자적으로 승격 | 입력과 분석 결과의 세대를 일치 | 일부 파일만 새 값으로 바뀌는 혼합 상태 |
+
+## Troubleshooting
+
+### 1. NEMC와 HIRA의 기관 ID가 달라 JOIN할 수 없었습니다
+
+- **Problem:** 전문의 데이터를 결합하면 기관 누락과 중복 매칭이 발생했습니다.
+- **Root cause:** 두 원천이 서로 다른 식별자를 사용하고 병원명·주소 표기도 일치하지 않았습니다.
+- **Options considered:** 병원명 완전일치, 지역별 greedy matching, 여러 특성을 이용한 전역 1:1 matching을 비교했습니다.
+- **Fix:** 이름·주소·전화·좌표·기관종별 점수를 결합하고 동일 HIRA ID의 중복 배정을 금지했습니다. 낮은 신뢰도 후보는 자동 확정하지 않았습니다.
+- **Result:** NEMC 기준 모집단을 보존하면서 오매칭과 전문의 수 중복 집계를 분리해 검토할 수 있게 됐습니다.
+
+### 2. 일부 지역의 병상 API 실패가 전국 갱신을 흔들었습니다
+
+- **Problem:** timeout이나 5xx가 발생하면 실패 지역이 0으로 보이거나 정상 지역까지 폐기될 수 있었습니다.
+- **Root cause:** 수집 성공 여부와 실제 병상 값이 같은 컬럼 흐름에서 처리됐습니다.
+- **Options considered:** 전체 배치 실패, 실패값 0 대체, 마지막 정상값 유지 방식을 비교했습니다.
+- **Fix:** 실패 지역은 마지막 정상값과 원래 기준시각을 유지하고, 전체 응답 기관 수가 안전 기준 아래로 떨어질 때만 갱신을 중단했습니다.
+- **Result:** 부분 장애 중에도 정상 지역을 제공하면서 오래된 값은 신선도 경고로 구분했습니다.
+
+### 3. 입력과 분석 결과가 서로 다른 세대로 섞일 수 있었습니다
+
+- **Problem:** CSV 일부만 갱신되면 위험도·회귀·군집과 화면 데이터가 서로 다른 입력을 사용했습니다.
+- **Root cause:** 파일 단위 교체에는 generation 전체의 일관성을 확인하는 단계가 없었습니다.
+- **Options considered:** 파일별 즉시 교체와 staging에서 전체 계약 검증 후 승격을 비교했습니다.
+- **Fix:** 유일성·지역 집합·결측 리포트·분석 산출물 계약을 통과한 staging만 한 세대로 원자적 승격했습니다.
+- **Result:** 검증 실패 시 live 파일을 건드리지 않고 마지막 정상 세대를 계속 제공할 수 있게 됐습니다.
 
 ## Analysis and validation
 

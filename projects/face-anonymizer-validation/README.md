@@ -1,71 +1,42 @@
-# Selective Face Anonymization — Threshold Validation
+# Selective Face Anonymization — Contribution Note
 
-> 등록된 얼굴은 유지하고 나머지 얼굴을 익명화하는 팀 프로젝트에서, 얼굴 매칭 threshold를 데이터로 검토하고 실패 조건을 분리했습니다.
+> 등록한 얼굴은 유지하고 나머지 얼굴을 익명화하는 팀 프로젝트입니다. 이 문서는 공개 커밋으로 확인되는 개인 기여 범위만 기록합니다.
 
-[Team repository](https://github.com/Ewha-face-anonymizer/model) · [Contribution history](https://github.com/Ewha-face-anonymizer/model/commits/main/?author=Westyoon)
+[Team repository](https://github.com/Ewha-face-anonymizer/model) · [My public commits](https://github.com/Ewha-face-anonymizer/model/commits/main/?author=Westyoon)
 
-## Executive summary
+## Project info
 
 | Item | Detail |
 |---|---|
-| Question | 어떤 cosine-distance threshold가 대상 인물 보존과 타인 익명화 사이의 오류를 줄일까? |
-| Pipeline | MTCNN detection → ArcFace embedding → cosine distance → OpenCV anonymization |
-| Validation | precision–recall, 인물별 threshold, 동일 인물·그룹 시나리오, A/B 처리 비교 |
-| Failure cases | 원거리 소형 얼굴, 가림, 빠른 움직임, 프레임 스킵 |
-| Tools | Python, PyTorch, ONNX Runtime, OpenCV |
+| Period | 2025.11 - 2026.05 |
+| Team | 3-person team |
+| Team goal | MTCNN detection → ArcFace embedding → cosine-distance matching → selective anonymization |
+| Verified contribution | 평가용 얼굴 데이터 정리·업로드, conda 환경 파일 추가 |
+| Public evidence | `data/input/Dataset/person31` - `person50`, `environment.yml` |
 
-## Why threshold selection mattered
+## Team project context
 
-얼굴 매칭 오류는 방향에 따라 비용이 다릅니다.
+팀 저장소는 얼굴 감지, 임베딩, cosine-distance matching과 익명화를 하나의 파이프라인으로 연결합니다. threshold별 precision–recall과 영상 처리 비교도 프로젝트 README에 설명되어 있습니다.
 
-- threshold가 너무 엄격하면 등록한 얼굴까지 익명화됩니다.
-- threshold가 너무 느슨하면 등록하지 않은 얼굴이 노출됩니다.
+이 기능들은 **팀 프로젝트 전체 결과**이며, 공개 커밋 기록만으로는 제 개인 구현이라고 주장하지 않습니다.
 
-따라서 단일 데모에서 잘 보이는 값을 고르지 않고, threshold 변화에 따른 precision과 recall을 함께 비교했습니다.
+## My contribution evidence
 
-## Validation design
+| Scope | Evidence | Boundary |
+|---|---|---|
+| 평가 데이터 구성 | [`data/input/Dataset/`](https://github.com/Ewha-face-anonymizer/model/tree/main/data/input/Dataset) | 공개 이력상 `person31` - `person50` 이미지 업로드 |
+| 실행 환경 | [`environment.yml`](https://github.com/Ewha-face-anonymizer/model/blob/main/environment.yml) | conda package 환경 파일 추가 |
+| Commit history | [Westyoon commits](https://github.com/Ewha-face-anonymizer/model/commits/main/?author=Westyoon) | 코드 소유권이 아니라 실제 공개 변경 범위 확인용 |
 
-```text
-참조 얼굴 등록
-→ 평가 이미지·영상에서 얼굴 감지
-→ ArcFace 512차원 임베딩
-→ cosine distance 계산
-→ threshold별 TP / FP / FN 집계
-→ precision–recall 비교
-→ 실패 조건별 재검토
-```
+## Why this is not a featured case
 
-검증 조건을 다음과 같이 나눴습니다.
+포트폴리오의 대표 사례는 문제 정의, 구현, 검증과 결과를 개인 기여로 추적할 수 있어야 합니다. 이 프로젝트의 공개 이력에서는 threshold 분석 코드와 핵심 파이프라인이 제 커밋으로 확인되지 않으므로 대표 프로젝트와 profile README에서 제외했습니다.
 
-1. 같은 인물의 각도·표정·조명 변화
-2. 여러 인물이 함께 등장하는 그룹 장면
-3. 원거리의 작은 얼굴과 부분 가림
-4. 빠른 움직임이 있는 영상
-5. 프레임 스킵·리사이즈·tracking 적용 전후
+## Privacy and limitations
 
-## Interpretation
-
-전체 평균 하나만 최적화하면 얼굴 크기나 인물에 따라 실패가 가려질 수 있습니다. 그래서 인물별 결과와 그룹 장면을 분리하고, 익명화 실패인 false positive를 특히 주의해 threshold를 검토했습니다.
-
-운영 기준을 정할 때는 정확도만이 아니라 다음을 함께 봐야 합니다.
-
-- 대상 인물 보존율
-- 타인 노출 위험
-- 처리 속도와 프레임 누락
-- 얼굴 크기·가림별 성능 차이
-- threshold가 바뀐 모델·임베딩 버전
-
-## Evidence
-
-- 전체 파이프라인과 실행법: [project README](https://github.com/Ewha-face-anonymizer/model#readme)
-- threshold·precision–recall 검증 설명: [실험 및 검증](https://github.com/Ewha-face-anonymizer/model#실험-및-검증)
-- 감지·임베딩·매칭·익명화 모듈: [`components/`](https://github.com/Ewha-face-anonymizer/model/tree/main/components)
-- 테스트: [`tests/`](https://github.com/Ewha-face-anonymizer/model/tree/main/tests)
-
-## Limitations
-
-- 공개 README에는 평가 샘플 수와 최종 threshold별 수치표가 포함되어 있지 않아 이 문서에서 수치를 새로 주장하지 않습니다.
-- 얼굴 데이터는 개인정보이므로 원본 평가 이미지를 포트폴리오에 복제하지 않습니다.
-- 특정 카메라·거리·연령대에서 정한 threshold는 다른 환경으로 그대로 일반화되지 않을 수 있습니다.
+- 얼굴 이미지는 개인정보와 라이선스 검토가 필요한 데이터이므로 이 포트폴리오에 복제하거나 미리보기로 삽입하지 않습니다.
+- 원본 팀 저장소의 공개 이미지도 재사용 전에 촬영 동의와 이용 범위를 별도로 확인해야 합니다.
+- 평가 표본 수, 최종 threshold와 성능 수치는 개인 기여 근거가 없어 이 문서에서 주장하지 않습니다.
+- 개인 기여를 확장하려면 본인이 작성한 분석 notebook, 실험 로그나 PR 근거가 추가로 필요합니다.
 
 [← Portfolio home](../../README.md)

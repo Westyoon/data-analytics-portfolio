@@ -4,6 +4,16 @@
 
 [Team repository](https://github.com/madcamp-official/26s-w3-c3-05) · [Role in project README](https://github.com/madcamp-official/26s-w3-c3-05#팀원) · [Contribution history](https://github.com/madcamp-official/26s-w3-c3-05/commits/main/?author=Westyoon)
 
+## Project info
+
+| Item | Detail |
+|---|---|
+| Period | 2026.07 |
+| Team | 3-person team |
+| My role | Gaze Tracking, 사용자별 calibration, 대상 판정과 진단 UI |
+| Stack | Python, MediaPipe, OpenCV, PySide6, pytest |
+| Demo | 공개 영상 없음; 팀 저장소의 코드와 실행 절차 제공 |
+
 ## Executive summary
 
 | Item | Detail |
@@ -33,6 +43,23 @@
 | “등록이 끝나지 않는다” | valid-frame count, coverage condition | 충분한 총 유효 프레임을 근거로 우회 조건 추가 |
 | “어디를 봐야 하는지 모르겠다” | registered area + current gaze map | 등록 영역과 현재 시선점을 진단 화면에 표시 |
 | “얼굴을 놓치면 화면이 사라진다” | registry-backed target map | 등록 영역은 유지하고 관측 시선점만 숨김 |
+
+## Troubleshooting
+
+### 1. 깜빡임 직후 시선 대상이 반복해서 해제됐습니다
+
+- **Problem:** 짧은 관측 손실마다 dwell이 초기화되어 사용자가 같은 대상을 계속 바라봐도 선택이 끊겼습니다.
+- **Root cause:** blink와 recovery 프레임을 일반적인 `UNKNOWN`과 같은 방식으로 처리했습니다.
+- **Options considered:** 항상 직전 대상을 유지하는 방식과 제한된 grace 구간만 허용하는 방식을 비교했습니다.
+- **Fix:** `blink_hold`, `recovery_hold`, `candidate_grace`로 짧은 손실만 흡수하고, 근거가 부족한 상태에서는 계속 `UNKNOWN`을 반환했습니다.
+- **Result:** 오선택 방지 원칙을 유지하면서 깜빡임 직후의 불필요한 초기화를 줄였습니다.
+
+### 2. 크기가 다른 기기에 같은 판정 반경을 적용할 수 없었습니다
+
+- **Problem:** 작은 전구에 맞춘 반경은 모니터에서 좁고, 큰 화면에 맞춘 반경은 전구 주변의 오선택을 늘렸습니다.
+- **Root cause:** 기기 크기와 calibration 분산을 무시한 전역 tolerance를 사용했습니다.
+- **Fix:** 등록 기기별 `radius_scale`을 적용하고 등록 영역과 현재 시선점을 같은 진단 화면에 표시했습니다.
+- **Result:** 기기별 조정 근거를 화면에서 확인할 수 있게 됐으며, tolerance 확대가 항상 정확도 향상은 아니라는 제한도 함께 남겼습니다.
 
 ## QA loop
 
