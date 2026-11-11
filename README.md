@@ -16,6 +16,8 @@
 | 데이터 이슈 도출·개선 | HIRA/NEMC 식별자 불일치, 중복 매칭, 오래된 병상값과 API 부분 실패 처리 | [QA 체크리스트](docs/03-data-qa-checklist.md) |
 | 분석 결과 고도화 | 결측을 0으로 대체하지 않고 원인코드·후속조치·품질상태로 관리 | [결측 관리 사례](docs/01-emergency-data-pipeline.md#4-qa와-문제-해결) |
 | 모델링 실험 지원 | 멀티모달 연합학습 실험, ablation, metric·checkpoint·W&B 기반 비교 | [연구 실험 검증](docs/02-model-output-validation.md#case-b-멀티모달-연합학습-실험) |
+| SQL 기반 추출·제공 | JDBC PreparedStatement, VIEW, JOIN, GROUP BY 기반 의료 기록·리뷰 조회 | [SQL 데이터 활용](docs/05-additional-relevant-projects.md#1-dbyte--sql·jdbc-기반-의료-데이터-서비스) |
+| 모델 결과 고도화 | 얼굴 매칭 Precision–Recall, threshold tuning과 시선 calibration 개선 | [추가 모델 검증 사례](docs/05-additional-relevant-projects.md) |
 
 ## Selected Projects
 
@@ -36,7 +38,7 @@
 
 ### 2. Adaptive Modality Selection — Model Experiment Validation
 
-[원본 저장소](https://github.com/Westyoon/Adaptive-Modality-Selection)
+[원본 저장소 — 비공개](https://github.com/Westyoon/Adaptive-Modality-Selection)
 
 멀티모달 연합학습 환경에서 클라이언트·모달리티 선택 전략을 비교하고, 데이터셋과 실험 조건별 모델 성능 및 통신 효율을 분석한 연구 구현 프로젝트입니다.
 
@@ -48,6 +50,44 @@
 - accuracy, macro-F1, loss, 통신량, 모달리티 선택 비율 추적
 - checkpoint 재개와 W&B metric logging으로 장시간 실험의 재현성과 비교 가능성 확보
 - modality missing 상황과 데이터셋별 loss 차이를 반영한 결과 검증
+
+### 3. DByte — SQL Data Extraction
+
+[원본 저장소](https://github.com/Westyoon/DByte)
+
+의료기관, 환자, 상담 기록, 건강 추적, 리뷰 데이터를 관계형 데이터베이스에서 조회·관리하는 Java/JDBC 프로젝트입니다. 직접 작성한 커밋에는 상담 기록, 기관 리뷰, 건강 추적과 메인 GUI 구현이 포함됩니다.
+
+- `PreparedStatement`를 이용한 조건별 데이터 조회와 CRUD
+- 환자·상담·의료기관 테이블 JOIN
+- `COUNT`, `AVG`, `GROUP BY` 기반 기관·사용자별 리뷰 통계
+- Patient/Doctor VIEW를 이용한 역할별 데이터 제공
+- 처방 전 환자 알레르기 데이터 대조
+
+### 4. Face Anonymizer — Threshold & Precision–Recall Validation
+
+[원본 저장소](https://github.com/Ewha-face-anonymizer/model)
+
+등록된 얼굴만 유지하고 나머지 얼굴을 익명화하는 모델 파이프라인에서 얼굴 매칭 threshold를 데이터로 조정했습니다.
+
+- MTCNN 감지 → ArcFace 512차원 임베딩 → 코사인 거리 매칭 → OpenCV 익명화
+- threshold별 Precision–Recall 분석
+- 동일 인물·그룹 시나리오를 분리한 임계값 탐색
+- 프레임 스킵·리사이즈·트래킹 적용 전후 A/B 비교
+- 원거리 소형 얼굴, 가림, 빠른 움직임을 포함한 실패 조건 점검
+
+### 5. JARVIS Gaze Tracking — Calibration & Field QA
+
+[원본 저장소](https://github.com/madcamp-official/26s-w3-c3-05)
+
+일반 웹캠의 시선과 제스처로 기기를 제어하는 프로젝트에서 Gaze Tracking을 담당했습니다.
+
+- 사용자별 기기 등록과 시선 대상 추정
+- calibration 유효 프레임과 coverage 조건 관리
+- blink/recovery grace와 각도·거리 tolerance 조정
+- 실제 사용 로그와 시연 피드백을 근거로 기기별 판정 영역 고도화
+- 등록 영역·현재 시선점 진단 지도를 추가해 오판정 원인을 시각적으로 확인
+
+세 프로젝트의 직무 연결과 근거는 [추가 관련 프로젝트](docs/05-additional-relevant-projects.md)에 정리했습니다.
 
 ## Data Quality Principles
 
@@ -67,6 +107,7 @@
 │  ├─ 02-model-output-validation.md
 │  ├─ 03-data-qa-checklist.md
 │  └─ 04-interview-talking-points.md
+│  └─ 05-additional-relevant-projects.md
 ├─ samples/
 │  └─ qa_validation_example.py
 └─ .gitignore
@@ -74,9 +115,9 @@
 
 ## Tech Stack
 
-`Python` · `pandas` · `scikit-learn` · `REST API` · `Next.js` · `Node.js` · `Docker` · `GitHub Actions` · `Railway` · `W&B` · `PyTorch`
+`Python` · `pandas` · `scikit-learn` · `SQL` · `JDBC` · `MySQL` · `REST API` · `Next.js` · `Node.js` · `Docker` · `GitHub Actions` · `Railway` · `W&B` · `PyTorch`
 
-SQL은 직무 수행에 필요한 추출·집계·검증 문법을 보완 학습 중이며, 본 포트폴리오에서는 실제로 수행한 Python 기반 ETL과 QA 경험을 중심으로 작성했습니다.
+SQL/JDBC 프로젝트에서 JOIN, VIEW, 조건별 조회, 집계와 CRUD를 구현했습니다. 대규모 분석 쿼리와 window function은 추가로 보완하고 있으며, 본 포트폴리오의 중심은 실제로 수행한 Python 기반 ETL과 QA 경험입니다.
 
 ## Source & Scope
 
